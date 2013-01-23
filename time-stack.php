@@ -519,3 +519,73 @@ if ( isset( $_GET['action'] ) && $_GET['action'] == 'hm_get_stacks' ) {
     exit;
 }
 
+
+
+
+
+
+/*
+
+Class to run additional tests on server
+Currently just writing to a file 10 times but I'll probably try add some additional tests to check different elements of PHP/server performance
+ 
+**/
+
+class WPS_testing {
+    
+    public $server_name_is;
+    
+    public function __construct() {
+
+        add_action('wp_footer', array( $this, 'write_files') );
+        
+        $this->generate_server_name();
+    }
+    
+    private function generate_server_name(){
+
+        ob_start();
+        phpinfo(1);
+        $phpinfo = ob_get_contents();
+        ob_end_clean();
+        
+        preg_match('/Linux (.*) [1-9]\./', $phpinfo, $matches);
+        $this->server_name_is = $matches[1];
+        
+    }
+    
+    public function write_files() {
+    
+        $char_num = 5000;
+        $this_many_times = 10;
+        
+        for ($i = 1; $i <= $this_many_times; $i++){
+            
+            do_action( 'start_operation', "Write $char_num char test file using {$this->server_name_is} server." );
+        
+                //write file
+                file_put_contents( WP_CONTENT_DIR.'/random-content.txt', $this->Generate_Random_Str($char_num) );
+            
+            do_action( 'end_operation', "Write $char_num char test file using {$this->server_name_is} server.");
+        }
+        
+        //delete the random content file
+        unlink( WP_CONTENT_DIR.'/random-content.txt' );
+    
+    }
+    
+    function Generate_Random_Str($size) {
+       $g = array();
+       for ($i=0; $i<$size; $i++) {
+          $g[] = chr(rand(0, 255)); /* Assign each random to an element
+    	  in the array */
+       }
+       $final = implode("", $g); // Put all array elements into one string
+       return $final;
+    }
+
+    
+}
+
+// run plugin
+$WPS_testing = new WPS_testing();
