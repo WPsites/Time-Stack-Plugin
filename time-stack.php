@@ -23,7 +23,10 @@ class HM_Time_Stack {
 
 	public static function get_data( $clear = false ) {
 
-		if ( function_exists( 'apc_store' ) && apc_store( '__test', '123' ) ) {
+		if ( !defined(WP_CACHE) || !WP_CACHE ){
+	            //persistent object cache not enabled so get data from filesystem
+	            $data = unserialize( file_get_contents(WP_CONTENT_DIR.'/time-stack-data.txt') );
+	        }else if ( function_exists( 'apc_store' ) && apc_store( '__test', '123' ) ) {
 			$data = apc_fetch( '_hm_all_stacks' );
 		} else {
 			$data = wp_cache_get( '_hm_all_stacks' );
@@ -37,7 +40,10 @@ class HM_Time_Stack {
 
 	public static function set_data( $data ) {
 
-		if ( function_exists( 'apc_store' ) && apc_store( '__test', '123' ) ) {
+		if ( !defined(WP_CACHE) || !WP_CACHE ){
+	            //persistent object cache not enabled so set data to filesystem
+	            return file_put_contents(WP_CONTENT_DIR.'/time-stack-data.txt', serialize( $data ));
+	        }else if ( function_exists( 'apc_store' ) && apc_store( '__test', '123' ) ) {
 			return apc_store( '_hm_all_stacks', $data, 60 );
 		} else {
 			return wp_cache_set( '_hm_all_stacks', $data, null, 60 );
